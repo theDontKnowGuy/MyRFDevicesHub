@@ -1,4 +1,12 @@
-int DEBUGLEVEL = 2;
+/*
+ * MyRFDevicesHub  by theDontKnowGuy
+ * 
+ * MyRFDevicesHub aims to collect all of your old 
+ * 
+ */
+
+
+int DEBUGLEVEL = 1;
 //////////////////////////Define Here New Device///////////////////////////////////////////////////////
 typedef struct { String Name; String location; String ID; String type; int messasgeLength; int protocol;} RFDevices;
 #define NoOfDevices 5
@@ -14,22 +22,22 @@ typedef struct {int LongShortTH; int messageLength; int deviceNameLength;}  RFPr
 RFProtocols SupportedProtocols[] = {{550,   50,   20},
                                     {550,   74,   20},
                                     {1500,  66,   12},
-                                    {550,   00,   20}};//// last one if for unknowns. add new ones before it.
+                                    {550,   00,   20}};//// last one if for unknowns. add new ones above this line.
 
 //////////////////////////Define Here Action Parameters ///////////////////////////////////////////////////////
 
-const char* ssid =     ".........";
-const char* password = ".........";
+const char* ssid =     "GIDEONI";
+const char* password = "qazWSX123";
 
 const int httpsPort = 443;
 
 //////////////////////////Define Here possible actions (for different devices) ///////////////////////////////////////////////////////
-typedef struct {String actionType; String actionParam1; String actionParam2; String actionParam3;}  Actions;
+typedef struct {String actionType; String actionParam1; String actionParam2; String actionParam3; String successValidator;}  Actions;
 #define NoOfDevicesMessageLengths 3
-Actions myActions[] = {{"httpPostLocal", "192.168.1.210",                         "ExternalDeviceName","status"},
-                       {"httpGetSTCloud","graph-na02-useast1.api.smartthings.com","/api/token/<your auth key here>/smartapps/installations/<webcore key here>/execute/",":<piston key here>:"},
-                       {"IFTTT",          "host3",           "ExternalDeviceName","temperature"},
-                       {"whateverelse",   "host4",           "ExternalDeviceName","status"}};
+Actions myActions[] = {{"httpPostLocal", "192.168.1.210", "ExternalDeviceName","status","HTTP/1.1 202 ACCEPTED"},
+                       {"httpGetSTCloud","graph-na02-useast1.api.smartthings.com", "/api/token/5ef187b3-6598-404f-a189-46e47cda06ab/smartapps/installations/935f9443-08e5-4987-8bb5-25cb320de9b5/execute/",":1af1cf9ca03dc287250433db7ee703ca:","{!result!:!OK!"},
+                       {"IFTTT",          "host3",           "ExternalDeviceName","temperature","successValidator"},
+                       {"whateverelse",   "host4",           "ExternalDeviceName","status","successValidator"}};
 
 //////////////////////////Define Here associations between devices to the required action. index refers ///////////////////////////////////////////////////////
 #define NoOfDeviceActions 4
@@ -52,6 +60,12 @@ extern "C" {
 #include "user_interface.h"
 }
 
+#ifdef DEBUG_ESP_PORT
+#define DEBUG_MSG(...) DEBUG_ESP_PORT.printf( __VA_ARGS__ )
+#else
+#define DEBUG_MSG(...)
+#endif
+
 #include <RFControl.h>
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
@@ -60,31 +74,26 @@ extern "C" {
 int timingsBins[CollectingCalls];
 int BinsStream[80];
 int MaxValidLengthTH = 2000;
-bool isDeviceExist = false;
-
-#ifdef DEBUG_ESP_PORT
-#define DEBUG_MSG(...) DEBUG_ESP_PORT.printf( __VA_ARGS__ )
-#else
-#define DEBUG_MSG(...)
-#endif
-
+unsigned long LiveSignalPreviousMillis = millis();
+int LivePulseLedStatus = 0; 
+ bool isDeviceExist;
 //////////////////////////Define here control lights //////////////////////
-#define red D4
+#define red D2
 #define yellow D3
 #define green D1
-#define blue D2
 
 void setup() {
-    pinMode(red, OUTPUT);  pinMode(yellow, OUTPUT);pinMode(green, OUTPUT); pinMode(blue, OUTPUT); pinMode(LED_BUILTIN,OUTPUT);
-    digitalWrite(red, LOW);digitalWrite(yellow, LOW);  digitalWrite(green, LOW); digitalWrite(blue, LOW); digitalWrite(LED_BUILTIN, LOW); 
-    Serial.begin(115200);
-    Serial.println("\nStarting..."); 
+    pinMode(red, OUTPUT);pinMode(yellow, OUTPUT);pinMode(green, OUTPUT);               
+    digitalWrite(red, HIGH);delay(200); digitalWrite(red, LOW);         
+
+    Serial.begin(115200); Serial.println("\nStarting..."); 
     
     RFControl::startReceiving(D5);    //wemos D1R2 GPIO14-->D5. default casued boot problems.
     
     if (DEBUGLEVEL > 3) {Serial.println("Avail heap mem: " + String(system_get_free_heap_size()));}
-    
+
     if (initiateNetwork()>0) {networkReset();}
+    digitalWrite(green, HIGH); // system running indicator
 }
  
 void loop() {
@@ -98,10 +107,10 @@ void loop() {
            
                 if (isDeviceExist) {
                     AnalyzeDeviceStatus(&myDevice);
-                    int r= eventAction(myDevice);}
+                    int r = eventAction(myDevice);}
                 else // device not recognized
                     ReportUnkownDevice(myDevice);
                 }
   RFControl::continueReceiving();
-
+  blinkLiveLed();
 }

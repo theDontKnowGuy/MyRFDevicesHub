@@ -12,6 +12,9 @@ String reportDeviceStatus(RFDevice myDevice){
                 if(myDevice.IsUnkown) DeviceReport = DeviceReport + "IsUnkown ";
                 DeviceReport = DeviceReport + " DeviceStatus: " + myDevice.deviceStatus +" ";
 
+         if (DEBUGLEVEL > 0) Serial.println((DeviceReport));
+
+
  String  postData = "<html>";
          postData += "<deviceID>" +       myDevice.ID + "</deviceID>";
          postData += "<deviceLocation>" + Devices[myDevice.idx].location + "</deviceLocation>";
@@ -27,13 +30,12 @@ String reportDeviceStatus(RFDevice myDevice){
             case 4:   //termostat
                    if ((myDevice.temperature < 999) && (myDevice.temperature >= 0)) postData += "<temperature>"+ String(myDevice.temperature) + "</temperature>";
             break;
-         
-         
-         
+
+
          } /// end switch case 
          postData += "</html>";
          
-         if (DEBUGLEVEL > 0) Serial.println((postData));
+         if (DEBUGLEVEL > 1) Serial.println((postData));
   return postData;       
 }
 

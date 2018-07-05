@@ -1,17 +1,15 @@
 int* GetRawData(){
-    digitalWrite(BUILTIN_LED,HIGH);
+    
     unsigned int *timings;
     unsigned int timings_size;
     unsigned int pulse_length_divider = RFControl::getPulseLengthDivider();   
     RFControl::getRaw(&timings, &timings_size);
-
     DeviceMessageLength = timings_size;   
 
     for(int i=0; i < timings_size; i++) {   
         unsigned long timing = timings[i] * pulse_length_divider;
         timingsBins[i] = timing;
       }
-    digitalWrite(blue,LOW);
     return timingsBins;
 }
 

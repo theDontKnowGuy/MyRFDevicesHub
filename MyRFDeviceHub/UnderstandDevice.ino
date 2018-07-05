@@ -25,7 +25,7 @@ void getDeviceDetails(RFDevice* myDevice){
           if (Devices[idxDevice].ID == myDevice->ID)  isDeviceExist = true; 
      }  
     myDevice->idx = (isDeviceExist) ? idxDevice : -1;
-}
+ }
 
 void getDeviceStatus(RFDevice* myDevice){
   String deviceStatus = "";

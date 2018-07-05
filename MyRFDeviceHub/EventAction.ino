@@ -1,8 +1,8 @@
 int eventAction(RFDevice myDevice){
 
-    int actionIdx ;
-    String postData, host;
-    
+    int actionIdx, result =0;
+    String postData, host, successValidator;
+
     postData = reportDeviceStatus(myDevice);
     
     for (int i=0; i < NoOfDeviceActions ; i++)
@@ -11,14 +11,31 @@ int eventAction(RFDevice myDevice){
     switch(actionIdx){
       case 0:       ////    PIR, "httpPostLocal", host1,"SalonMotionSensor","status"
                  host = myActions[actionIdx].actionParam1;
-                 httpPostRequest(host, postData);
+                 successValidator = myActions[actionIdx].successValidator;
+                     
+                 result = httpPostRequest(host, postData, successValidator);
       break;
       case 1:       ///// remote button to call webcore piston
                 host = myActions[actionIdx].actionParam1;
                 postData = myActions[actionIdx].actionParam2 + myActions[actionIdx].actionParam3;
-                httpGetRequest(host, postData); 
+                successValidator = myActions[actionIdx].successValidator;
+                
+                result = httpGetRequest(host, postData, successValidator); 
       break;
       
     } /// switch case
+
     return 0;
 }
+
+
+void blinkLiveLed(){
+  
+  if(millis() - LiveSignalPreviousMillis > 1000){
+    digitalWrite(green,!(LivePulseLedStatus));
+    LivePulseLedStatus  = !(LivePulseLedStatus);
+    LiveSignalPreviousMillis = millis();
+  }
+ }
+
+
