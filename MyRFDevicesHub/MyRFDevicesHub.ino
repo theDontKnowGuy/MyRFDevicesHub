@@ -1,10 +1,11 @@
 /*
  * MyRFDevicesHub  by theDontKnowGuy
  * 
- * MyRFDevicesHub aims to collect all of your old 
+ * Connect all my RF 433 Devices messages and convert them to actions like connect to Smartthings.
+ * Version 0.2 beta
  * 
+ * credit to the writers of RFControl and ESP8266WiFi stacks.
  */
-
 
 int DEBUGLEVEL = 1;
 //////////////////////////Define Here New Device///////////////////////////////////////////////////////
@@ -26,8 +27,8 @@ RFProtocols SupportedProtocols[] = {{550,   50,   20},
 
 //////////////////////////Define Here Action Parameters ///////////////////////////////////////////////////////
 
-const char* ssid =     "GIDEONI";
-const char* password = "qazWSX123";
+const char* ssid =     ".........";
+const char* password = ".........";
 
 const int httpsPort = 443;
 
@@ -35,7 +36,7 @@ const int httpsPort = 443;
 typedef struct {String actionType; String actionParam1; String actionParam2; String actionParam3; String successValidator;}  Actions;
 #define NoOfDevicesMessageLengths 3
 Actions myActions[] = {{"httpPostLocal", "192.168.1.210", "ExternalDeviceName","status","HTTP/1.1 202 ACCEPTED"},
-                       {"httpGetSTCloud","graph-na02-useast1.api.smartthings.com", "/api/token/5ef187b3-6598-404f-a189-46e47cda06ab/smartapps/installations/935f9443-08e5-4987-8bb5-25cb320de9b5/execute/",":1af1cf9ca03dc287250433db7ee703ca:","{!result!:!OK!"},
+                       {"httpGetSTCloud","graph-na02-useast1.api.smartthings.com", "/api/token/<secret key>/smartapps/installations/<your user code>/execute/",":piston number:","{!result!:!OK!"},
                        {"IFTTT",          "host3",           "ExternalDeviceName","temperature","successValidator"},
                        {"whateverelse",   "host4",           "ExternalDeviceName","status","successValidator"}};
 
