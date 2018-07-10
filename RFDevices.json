@@ -1,0 +1,45 @@
+{"RFDevices": [
+
+{"Name": "Salon Curtain Motion Detector",
+"location": "SalonDoor",
+"ID": "0xcfee1",
+"type": "PIR",
+"messasgeLength": 74,
+"protocol": 1
+},
+{"Name": "Switch on garden lights",
+"location": "GardenLights",
+"ID": "0x8cba3",
+"type": "RemoteBtn",
+"messasgeLength": 50,
+"protocol": 2
+},
+{"Name": "Switch off garden lights",
+"location": "GardenLights",
+"ID": "0x7345c",
+"type": "RemoteBtn",
+"messasgeLength": 50,
+"protocol": 2
+},
+{"Name": "Another Motion Detector",
+"location": "Somewhere",
+"ID": "0xc2107",
+"type": "PIR2",
+"messasgeLength": 50,
+"protocol": 3
+},
+{"Name": "Kitchen termometer",
+"location": "Kitchen",
+"ID": "0x880",
+"type": "Termometer",
+"messasgeLength": 66,
+"protocol": 4
+}],
+"SupportedProtocols": [
+{"LongShortTH": 550, "messageLength": 50, "deviceNameLength": 20},
+{"LongShortTH": 550, "messageLength": 74, "deviceNameLength": 20},
+{"LongShortTH": 1500, "messageLength": 66, "deviceNameLength": 12},
+{"LongShortTH": 550, "messageLength": 00, "deviceNameLength": 20}
+]
+}
+    
