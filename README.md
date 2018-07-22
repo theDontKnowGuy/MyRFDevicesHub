@@ -1,6 +1,10 @@
 # myRFDevicesHub
 Connect all my RF 433 Devices messages and convert them to actions like connect to Smartthings
 
+* V0.4 beta - support set clock and add timestamp to reports and logs
+* V0.3 beta - support dynamic load of new devices - ***** No Need to recompile to add new devices ***** Configuration done with a json file on another server. See attached json for example.
+--------------------------------------------------------------------------------------------
+
 
 So I have so many semy old to dead old 433Mhz RF  devices: from aliexpress 5$ sensors to fancy VISONIC PIR, all sort of remote controls that start stuff, and my kitchen kings meat thermometer which sends signals to its display device (https://www.aliexpress.com/item/Digital-Wireless-LCD-BBQ-Grill-Meat-Oven-Food-Remote-Thermometer-Kitchen-Tool/32758598223.html?spm=a2g0s.9042311.0.0.64f94c4dRSp3qR) which I love.
 
