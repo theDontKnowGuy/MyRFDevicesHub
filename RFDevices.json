@@ -39,7 +39,7 @@
 {"LongShortTH": 550, "messageLength": 50, "deviceNameLength": 20},
 {"LongShortTH": 550, "messageLength": 74, "deviceNameLength": 20},
 {"LongShortTH": 1500, "messageLength": 66, "deviceNameLength": 12},
-{"LongShortTH": 550, "messageLength": 00, "deviceNameLength": 20}
+{"LongShortTH": 550, "messageLength": 0, "deviceNameLength": 20}
 ]
 }
     

@@ -1,8 +1,11 @@
 String reportDeviceStatus(RFDevice myDevice){
 
- String          DeviceReport = "DeviceID: " + myDevice.ID;
+  String timeStamp = getTimeStamp();
+
+ if (DEBUGLEVEL > 0){
+      String    DeviceReport = timeStamp + " DeviceID: " + myDevice.ID;
                 DeviceReport = DeviceReport + " MsgLen: " + String(myDevice.messageLength);
-//              DeviceReport = DeviceReport + " FreeHeapMem: " + system_get_free_heap_size();
+                if (DEBUGLEVEL > 4) DeviceReport = DeviceReport + " FreeHeapMem: " + system_get_free_heap_size();
                 DeviceReport = DeviceReport + " DeviceType: " + Devices[myDevice.idx].type;
                 DeviceReport = DeviceReport + " DeviceLocation: " + Devices[myDevice.idx].location;                
                 if(myDevice.IsMove) DeviceReport = DeviceReport +  "IsMove ";
@@ -12,10 +15,11 @@ String reportDeviceStatus(RFDevice myDevice){
                 if(myDevice.IsUnkown) DeviceReport = DeviceReport + "IsUnkown ";
                 DeviceReport = DeviceReport + " DeviceStatus: " + myDevice.deviceStatus +" ";
 
-         if (DEBUGLEVEL > 0) Serial.println((DeviceReport));
-
-
+       Serial.println((DeviceReport));
+  }
+  
  String  postData = "<html>";
+         postData += "<timeStamp>" +      timeStamp + "</timeStamp>";
          postData += "<deviceID>" +       myDevice.ID + "</deviceID>";
          postData += "<deviceLocation>" + Devices[myDevice.idx].location + "</deviceLocation>";
          postData += "<deviceType>" +     Devices[myDevice.idx].type + "</deviceType>";
@@ -53,3 +57,5 @@ void ReportUnkownDevice(RFDevice myDevice){
 
                 if (DEBUGLEVEL > 0) Serial.println((DeviceReport));
 }
+
+

@@ -1,3 +1,4 @@
+
 int eventAction(RFDevice myDevice){
 
     int actionIdx, result =0;
@@ -15,6 +16,8 @@ int eventAction(RFDevice myDevice){
                      
                  result = httpPostRequest(host, postData, successValidator);
       break;
+ 
+      
       case 1:       ///// remote button to call webcore piston
                 host = myActions[actionIdx].actionParam1;
                 postData = myActions[actionIdx].actionParam2 + myActions[actionIdx].actionParam3;
@@ -29,13 +32,5 @@ int eventAction(RFDevice myDevice){
 }
 
 
-void blinkLiveLed(){
-  
-  if(millis() - LiveSignalPreviousMillis > 1000){
-    digitalWrite(green,!(LivePulseLedStatus));
-    LivePulseLedStatus  = !(LivePulseLedStatus);
-    LiveSignalPreviousMillis = millis();
-  }
- }
 
 

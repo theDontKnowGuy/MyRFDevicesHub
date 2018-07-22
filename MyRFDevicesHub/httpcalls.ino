@@ -22,10 +22,13 @@ int initiateNetwork(){
       }  
           
   if (DEBUGLEVEL>0) {Serial.print("WiFi connected. IP address: "); Serial.println(WiFi.localIP());}
+ 
+  result = httpTestRequest();
   
-  if (httpTestRequest()==0) {digitalWrite(red,LOW);}
+  if (result==0) {digitalWrite(red,LOW);}
     else
-    {digitalWrite(red,HIGH); Serial.println("Network problem error code" + String(result));}
+    {digitalWrite(red,HIGH); 
+     Serial.println("Network problem error code" + String(result));}
   
   digitalWrite(yellow,LOW); 
      
@@ -35,40 +38,47 @@ return result;
 int httpGetRequest(String host, String URI, String successValidator){
    
    digitalWrite(yellow,HIGH);
-   
+   int result;
    WiFiClientSecure client;
 
-   if (DEBUGLEVEL>2) {Serial.print("connecting to ");Serial.println(String(host));}  
+   if (DEBUGLEVEL>2) {Serial.print("connecting to ");Serial.println(host);}  
     
    if (!client.connect(host, httpsPort)) {
           Serial.println("connection failed");
           digitalWrite(red,HIGH);
           return 1;
      }
-     
+   
   if (DEBUGLEVEL>2) {Serial.print("requesting URI: "); Serial.println(URI);}
 
     client.print(String("GET ") + URI + " HTTP/1.1\r\n" +
                "Host: " + host + "\r\n" +
                "User-Agent: BuildFailureDetectorESP8266\r\n" +
                "Connection: close\r\n\r\n");
+    
 
-  while (client.connected()) {
-    String line = client.readStringUntil('\n');
+  while (client.connected()) {    
+    String line = client.readStringUntil('\n');  
+    if (DEBUGLEVEL>4) Serial.println(line);
+    if (line.startsWith("Date")) extractTime(line);
     if (line == "\r") {
       if (DEBUGLEVEL>2) Serial.println("headers received");
       break;
     }
-  }
+  }  
+
   String line = client.readStringUntil('}');
   line.replace(char(34), char(33));
   if (!(line.indexOf(successValidator) == 1)) {
-    if(DEBUGLEVEL>2) Serial.println("Valid Reponse received.");
-  } else {Serial.println("Unanticipated Reponse received.");}
-  
-  if (DEBUGLEVEL>2) Serial.println(line);
-  
-  digitalWrite(yellow,LOW);
+        if(DEBUGLEVEL>2) Serial.println("Valid Reponse received.");
+        digitalWrite(yellow,LOW);
+        digitalWrite(red,LOW);  
+        return 0;}
+    else {Serial.println("Unanticipated Reponse received.");
+        if (DEBUGLEVEL>2) Serial.println(line);
+        digitalWrite(yellow,LOW);
+        digitalWrite(red,HIGH);        
+        return 2;}   
 }
 
 int httpPostRequest(String host, String postData, String successValidator){
@@ -126,22 +136,16 @@ int httpPostRequest(String host, String postData, String successValidator){
  return result; 
 }
 
-void boardpanic(){
-   Serial.println("Reseting for panic !!!!!!!!!!!!!!!!!!!!!!!!!!!");
-   ESP.reset();
-}
-
 int httpTestRequest(){
 
-  String host = "graph-na02-useast1.api.smartthings.com";
-  String URI = "/assets/apps/main/main-app-5811442e0bc96e2d7374677668e7edc4.js";  // just to get a response with a }
-  String successValidator = "(function(n,S)";
+  String host = "www.google.com";
+  String URI = "/";  
+  String successValidator = "<!doctype html><html dir";
   
-  int result = httpGetRequest(host,URI,successValidator );
-
-  
-  return 0;}
-
+  int result = httpGetRequest(host,URI,successValidator);
+  if (DEBUGLEVEL>3) Serial.println("Result of httpTestRequest: " + String(result));
+  return result;
+}
 
 void networkReset(){
   digitalWrite(red,HIGH); // network problem

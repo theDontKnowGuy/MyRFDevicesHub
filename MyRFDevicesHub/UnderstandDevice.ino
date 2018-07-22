@@ -59,7 +59,7 @@ void AnalyzeDeviceStatus(RFDevice* myDevice){
               unsigned long bin=0;
               for(int i = 1 ; i <12 ; i++){s = s + ((myDevice->deviceStatus[i]=='1') ? '1':'0');}
               bin = s.toInt();
-              myDevice->temperature = convertB2Dec(bin)/10;
+              myDevice->temperature = convertBin2Dec(bin)/10;
               if(DEBUGLEVEL>2){ Serial.println(bin);Serial.println(myDevice->temperature);}                
                                
         break;
@@ -67,7 +67,7 @@ void AnalyzeDeviceStatus(RFDevice* myDevice){
     }   ///SWITCH CASE
 }
 
-int convertB2Dec (unsigned long num){
+int convertBin2Dec (unsigned long num){
     int dec=0, b=1, rem=1;
     while (num > 0)
     {  rem = num % 10;
