@@ -1,7 +1,7 @@
 
 int eventAction(RFDevice myDevice){
 
-    int actionIdx, result =0;
+    int actionIdx, port, result =0;
     String postData, host, successValidator;
 
     postData = reportDeviceStatus(myDevice);
@@ -12,12 +12,11 @@ int eventAction(RFDevice myDevice){
     switch(actionIdx){
       case 0:       ////    PIR, "httpPostLocal", host1,"SalonMotionSensor","status"
                  host = myActions[actionIdx].actionParam1;
+                 port = myActions[actionIdx].actionParam2.toInt();
                  successValidator = myActions[actionIdx].successValidator;
                      
-                 result = httpPostRequest(host, postData, successValidator);
-      break;
- 
-      
+                 result = httpPostRequest(host, port, "posts", postData, successValidator);
+      break;      
       case 1:       ///// remote button to call webcore piston
                 host = myActions[actionIdx].actionParam1;
                 postData = myActions[actionIdx].actionParam2 + myActions[actionIdx].actionParam3;

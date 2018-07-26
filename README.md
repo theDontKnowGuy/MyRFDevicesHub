@@ -1,8 +1,11 @@
 # myRFDevicesHub
 Connect all my RF 433 Devices messages and convert them to actions like connect to Smartthings
 
-* V0.4 beta - support set clock and add timestamp to reports and logs
-* V0.3 beta - support dynamic load of new devices - ***** No Need to recompile to add new devices ***** Configuration done with a json file on another server. See attached json for example.
+ * Version 0.5 beta - Support logging over http. Adoptation to ArduinoJson lib 6.2.3. 
+ * Version 0.4 beta - Support set clock and add timestamp to reports and logs
+ * Version 0.3 beta - Support dynamic load of new devices
+ * Version 0.2 beta
+ * credit to the writers of RFControl, ArduinoJson and ESP8266WiFi stacks.
 --------------------------------------------------------------------------------------------
 
 
@@ -24,12 +27,12 @@ I am not a programmer. I can write few lines in C but that is about it.  So plea
 *Installation:* 
 1. Download the myRFDevicesHub into your Arduino library (lots of files, one project with tabs so you don't have to scroll like maniacs).
 2. Make sure to install RFControl from here https://github.com/pimatic/RFControl
-3. Configure your new life. All configurations are in the upper part of the main tab (called after the project myRFDevicesHub).
-4. Actions: configure the host and URL parameters you want to use. In the out of the box  examples put your secret key, account hash and piston# and it will work.
-5. To add new RF devices first try to run them as is. They will be unknown, but if you get a deviceID in the log, the protocol is recognized. ye. add their device ID to the Devices database and you are good to go (for the most part. parameters can be different).
-6. If the protocol is not recognized, enlarge the DEBUGLEVEL and get a printout of the codes received. If you don't get a good split of 0's and 1's in the output, you may want to change the treshhold of the digital reading of the actual radio transmission to a number somewhere between the low numbers and the high number (microseconds of up and down radio signals).
+3. As an optional step, place the MyRFDevicesHubLogger.php on a (preferebly local) php web server to save the logs on the network, again so you don't need to go and connect to the hub when you want to know what is going on. Configure the path where logs are saved to on the php file. Configure the path to the php file in the logTarget parameter.
+4. As an optional step, place RFDevices.json on the same local network http web server and configure the path to it in the dataUpdateHost, port and URI parameters. This will override the list of devices and protocol, as well as debuglevel, so you don't need to recompile to add a new device or to incease debuglevel.
+3. Configure your new life. All configurations are in the upper part of the main tab (myRFDevicesHub) and some are overrided in the json file - so change it there first .
+5. Actions: configure the host and URL parameters you want to use. In the out of the box  examples put your secret key, account hash and piston# and it will work.
+6. To add new RF devices first try to run them as is. They will be unknown, but if you get a deviceID in the log, the protocol is recognized. ye. add their device ID to the Devices database in the json and you are good to go (for the most part. parameters can be different).
+6. If the protocol is not recognized, enlarge the DEBUGLEVEL on the json file and get a printout of the codes received. If you don't get a good split of 0's and 1's in the output, you may want to change the treshhold of the digital reading of the actual radio transmission to a number somewhere between the low numbers and the high number (microseconds of up and down radio signals).
 
-Known limitations and issues:
-- Still crashes from time to time.  Recovers quickly. Working to find out why.
 
 Would love to get your feedback.

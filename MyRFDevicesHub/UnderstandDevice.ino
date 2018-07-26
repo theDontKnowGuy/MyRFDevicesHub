@@ -60,7 +60,7 @@ void AnalyzeDeviceStatus(RFDevice* myDevice){
               for(int i = 1 ; i <12 ; i++){s = s + ((myDevice->deviceStatus[i]=='1') ? '1':'0');}
               bin = s.toInt();
               myDevice->temperature = convertBin2Dec(bin)/10;
-              if(DEBUGLEVEL>2){ Serial.println(bin);Serial.println(myDevice->temperature);}                
+              logThis(0,String((2,bin)),2); logThis(String(myDevice->temperature));                
                                
         break;
         

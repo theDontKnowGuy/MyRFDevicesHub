@@ -18,17 +18,17 @@ int initiateNetwork(){
   if (!(currentMillis - previousMillis < interval)){
         Serial.println("Timeout waiting for network");
         digitalWrite(red,HIGH);
-        networkReset();
+        return 1;
       }  
-          
-  if (DEBUGLEVEL>0) {Serial.print("WiFi connected. IP address: "); Serial.println(WiFi.localIP());}
+
+  Serial.print("WiFi connected. IP address: "); Serial.println(WiFi.localIP());
  
   result = httpTestRequest();
   
   if (result==0) {digitalWrite(red,LOW);}
     else
     {digitalWrite(red,HIGH); 
-     Serial.println("Network problem error code" + String(result));}
+     logThis("Network problem error code" + String(result),2);}
   
   digitalWrite(yellow,LOW); 
      
@@ -68,6 +68,9 @@ int httpGetRequest(String host, String URI, String successValidator){
   }  
 
   String line = client.readStringUntil('}');
+  
+  client.stop();      
+  
   line.replace(char(34), char(33));
   if (!(line.indexOf(successValidator) == 1)) {
         if(DEBUGLEVEL>2) Serial.println("Valid Reponse received.");
@@ -81,35 +84,35 @@ int httpGetRequest(String host, String URI, String successValidator){
         return 2;}   
 }
 
-int httpPostRequest(String host, String postData, String successValidator){
+int httpPostRequest(String host, int port, String URI, String postData, String successValidator){
     WiFiClient client;
     
     int result = 0;
     digitalWrite(yellow,HIGH);
          
-    if(DEBUGLEVEL>1) Serial.println(postData);
+    logThis(4,postData,2);
 
-    if (!(client.connect(host, 39500))) 
-    {   Serial.println("Failed to connect");
-        networkReset();
-        httpPostRequest(host, postData, successValidator);}
+    if (!(client.connect(host, port))) 
+    {   logThis("Failed to connect");
+        return 1;}
     else
-    {       client.println("POST /posts HTTP/1.1");
-            client.print("Host: " + host);
+    {       client.println("POST " + URI + " HTTP/1.1");
+            client.println("Host: " + host);
+            client.println("User-Agent: BuildFailureDetectorESP8266");
             client.println("Cache-Control: no-cache");
-            client.println("Content-Type: application/json");
-           // client.println("Content-Type: application/x-www-form-urlencoded");
+          //  client.println("Content-Type: application/json");
+            client.println("Content-Type: application/x-www-form-urlencoded;");    
             client.print("Content-Length: ");
             client.println(postData.length());
             client.println();
-            client.println(postData);
-          
-    long interval = 2000;
+            client.println(postData);     
+                       
+    long interval = 8000;
     unsigned long currentMillis = millis(), previousMillis = millis();
   
     while(!client.available()){
       if( (currentMillis - previousMillis) > interval ){
-        Serial.println("Timeout");
+        logThis("Timeout");
         client.stop();
         digitalWrite(red,HIGH);     
         return 1;
@@ -121,13 +124,16 @@ int httpPostRequest(String host, String postData, String successValidator){
     String line = ""; 
     char str;
     while (client.connected()) {if ( client.available() ) str = client.read(); line += str;}
+
+    client.stop();
+        
     line.replace(char(34), char(33));
     if (!(line.indexOf(successValidator) == -1)) {
-            if(DEBUGLEVEL>2) Serial.println("Valid Reponse received.");
+            if(DEBUGLEVEL>2) logThis("Valid Reponse received.");
             digitalWrite(red,LOW);
      } else {
-            Serial.println("Unanticipated Reponse received.");
-            Serial.println(line);
+            logThis("Unanticipated Reponse received.");
+            logThis(line);
             digitalWrite(red,HIGH);
      }
             
@@ -139,27 +145,28 @@ int httpPostRequest(String host, String postData, String successValidator){
 int httpTestRequest(){
 
   String host = "www.google.com";
+  int port = 443;
   String URI = "/";  
   String successValidator = "<!doctype html><html dir";
   
-  int result = httpGetRequest(host,URI,successValidator);
-  if (DEBUGLEVEL>3) Serial.println("Result of httpTestRequest: " + String(result));
+  int result = httpGetRequest(host, URI,successValidator);
+  logThis(3,"Result of httpTestRequest: " + String(result));
   return result;
 }
 
 void networkReset(){
   digitalWrite(red,HIGH); // network problem
-  
-  if (DEBUGLEVEL>0) {  Serial.println("PERFORMING NETWORK RESET!");}
+  WiFi.disconnect(); 
+  logThis("PERFORMING NETWORK RESET!");
   delay(1000);
   if (initiateNetwork()==0) {  
-    Serial.println("DONE AFTER FIRST ATTEMPT");
+    logThis("DONE AFTER FIRST ATTEMPT");
     digitalWrite(red,LOW); 
     return;
   }
   delay(120000);
   if (initiateNetwork()==0) {  
-    Serial.println("DONE AFTER SECOND ATTEMPT");
+    logThis("DONE AFTER SECOND ATTEMPT");
     digitalWrite(red,LOW); 
     return;
   }

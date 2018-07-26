@@ -15,7 +15,7 @@ String reportDeviceStatus(RFDevice myDevice){
                 if(myDevice.IsUnkown) DeviceReport = DeviceReport + "IsUnkown ";
                 DeviceReport = DeviceReport + " DeviceStatus: " + myDevice.deviceStatus +" ";
 
-       Serial.println((DeviceReport));
+         logThis(0,DeviceReport,2);
   }
   
  String  postData = "<html>";
@@ -39,7 +39,7 @@ String reportDeviceStatus(RFDevice myDevice){
          } /// end switch case 
          postData += "</html>";
          
-         if (DEBUGLEVEL > 1) Serial.println((postData));
+         logThis(3,postData,2);
   return postData;       
 }
 
@@ -55,7 +55,7 @@ void ReportUnkownDevice(RFDevice myDevice){
                 for (int i=0 ; i < DeviceMessageLength ; i++)  {UnknwonStream=UnknwonStream+ timingsBins[i]+ " ";}                
                 DeviceReport = DeviceReport +  UnknwonStream;             
 
-                if (DEBUGLEVEL > 0) Serial.println((DeviceReport));
+                logThis(DeviceReport);
 }
 
 

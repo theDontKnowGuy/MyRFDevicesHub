@@ -3,10 +3,11 @@
  * 
  * Connect all my RF 433 Devices messages and convert them to actions like connect to Smartthings.
  * 
- * Version 0.4 beta - support set clock and add timestamp to reports and logs
- * Version 0.3 beta - support dynamic load of new devices
+ * Version 0.5 beta - Support network logging. Adopting to new ArduinoJson library 6.2.3. 
+ * Version 0.4 beta - Support set clock and add timestamp to reports and logs
+ * Version 0.3 beta - Support dynamic load of new devices
  * Version 0.2 beta
- * credit to the writers of RFControl and ESP8266WiFi stacks.
+ * credit to the writers of RFControl, ArduinoJson and ESP8266WiFi stacks.
  */
 
 int DEBUGLEVEL = 1;   // set between 0 and 5
@@ -33,19 +34,19 @@ RFProtocols SupportedProtocols[] = {{550,   50,   20},
 
 //////////////////////////Define Here Local Network and Data Update Server if any (optional) ///////////////////////////////////////////////////////
 
-const char* ssid =    "....";
-const char* password ="....";
+const char* ssid =    "GIDEONI";
+const char* password ="qazWSX123";
 const int   httpsPort=443;
 
-String dataUpdateHost = "192.168.1.200"; /// leave empty is no local server (use hardcoded values above)
+String dataUpdateHost = "192.168.1.200"; 
 int dataUpdatePort = 80;
-String dataUpdateURI = "/MyRFDevicesHub/MyRFDevicesHub.json";
-
+String dataUpdateURI =  "/MyRFDevicesHub/MyRFDevicesHub.json";   /// see example json file in github. leave value empty is no local server (use hardcoded values above)
+String logTarget =      "/MyRFDevicesHub/MyRFDevicesHubLogger.php"; /// leave empty is no local loggin server (will only Serial.print logs)
 
 //////////////////////////Define Here possible actions (for different devices) ///////////////////////////////////////////////////////
 typedef struct {String actionType; String actionParam1; String actionParam2; String actionParam3; String successValidator;}  Actions;
 #define NoOfDevicesMessageLengths 3
-Actions myActions[] = {{"httpPostLocal", "192.168.1.210", "ExternalDeviceName","status","HTTP/1.1 202 ACCEPTED"},
+Actions myActions[] = {{"httpPostLocal", "192.168.1.210", "39500","status","HTTP/1.1 202 ACCEPTED"},
                        {"httpGetSTCloud","graph-na02-useast1.api.smartthings.com", "/api/token/5ef187b3-6598-404f-a189-46e47cda06ab/smartapps/installations/935f9443-08e5-4987-8bb5-25cb320de9b5/execute/",":1af1cf9ca03dc287250433db7ee703ca:","{!result!:!OK!"},
                        {"IFTTT",          "host3",           "ExternalDeviceName","temperature","successValidator"},
                        {"whateverelse",   "host4",           "ExternalDeviceName","status","successValidator"}};
@@ -85,8 +86,9 @@ extern "C" {
 #define RFmessageLength 80
 int timingsBins[RFmessageLength], BinsStream[RFmessageLength];
 int MaxValidLengthTH = 2000, LivePulseLedStatus = 0; 
-unsigned long LiveSignalPreviousMillis = millis();
+unsigned long LiveSignalPreviousMillis = millis(); 
 bool isDeviceExist;
+String logBuffer = "";
 
 //////////////////////////Define here control lights //////////////////////
 #define red D2
@@ -96,25 +98,24 @@ bool isDeviceExist;
 void setup() {
 
     pinMode(red, OUTPUT);pinMode(yellow, OUTPUT);pinMode(blue, OUTPUT);               
-    digitalWrite(red, HIGH);delay(200); digitalWrite(red, LOW);    
-    if (DEBUGLEVEL > 2) {digitalWrite(yellow, HIGH);delay(200); digitalWrite(yellow, LOW);delay(200);digitalWrite(blue, HIGH);delay(200); digitalWrite(blue, LOW);} 
+    digitalWrite(red, HIGH);delay(200); digitalWrite(red, LOW);digitalWrite(yellow, HIGH);delay(200); digitalWrite(yellow, LOW);delay(200);digitalWrite(blue, HIGH);delay(200); digitalWrite(blue, LOW);
 
-    Serial.begin(115200); Serial.println("\nStarting..."); 
+    Serial.begin(115200); logThis("Starting MyRFDevicesHub...",3); 
       
-    if (DEBUGLEVEL > 3) {Serial.println("Avail heap mem: " + String(system_get_free_heap_size()));}
-
     if (initiateNetwork()>0) {networkReset();}
+
+    logThis(5, "Avail heap mem: " + String(system_get_free_heap_size()));
 
     loadDevicesValues();
 
     RFControl::startReceiving(D5);    //wemos D1R2 GPIO14-->D5. default casued boot problems.
     
-    digitalWrite(blue, HIGH); // system running indicator
+    logThis("Initialization Completed."); 
+    digitalWrite(blue, HIGH); // system live indicator
 }
  
 void loop() {
-
-
+  
   if(RFControl::hasData()) {
 
                 int myInxDevice = -1;
