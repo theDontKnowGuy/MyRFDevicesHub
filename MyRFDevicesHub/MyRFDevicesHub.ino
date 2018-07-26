@@ -34,8 +34,8 @@ RFProtocols SupportedProtocols[] = {{550,   50,   20},
 
 //////////////////////////Define Here Local Network and Data Update Server if any (optional) ///////////////////////////////////////////////////////
 
-const char* ssid =    "GIDEONI";
-const char* password ="qazWSX123";
+const char* ssid =    ".........";
+const char* password =".........";
 const int   httpsPort=443;
 
 String dataUpdateHost = "192.168.1.200"; 
@@ -47,7 +47,7 @@ String logTarget =      "/MyRFDevicesHub/MyRFDevicesHubLogger.php"; /// leave em
 typedef struct {String actionType; String actionParam1; String actionParam2; String actionParam3; String successValidator;}  Actions;
 #define NoOfDevicesMessageLengths 3
 Actions myActions[] = {{"httpPostLocal", "192.168.1.210", "39500","status","HTTP/1.1 202 ACCEPTED"},
-                       {"httpGetSTCloud","graph-na02-useast1.api.smartthings.com", "/api/token/5ef187b3-6598-404f-a189-46e47cda06ab/smartapps/installations/935f9443-08e5-4987-8bb5-25cb320de9b5/execute/",":1af1cf9ca03dc287250433db7ee703ca:","{!result!:!OK!"},
+                       {"httpGetSTCloud","graph-na02-useast1.api.smartthings.com", "/api/token/<token code here> /smartapps/installations/<secret code here>/execute/",":piston code here:","{!result!:!OK!"},
                        {"IFTTT",          "host3",           "ExternalDeviceName","temperature","successValidator"},
                        {"whateverelse",   "host4",           "ExternalDeviceName","status","successValidator"}};
 
