@@ -45,8 +45,8 @@ void Length2bin(){
         }  // switch case
 
     if (DEBUGLEVEL > 3){
-      for(int i=0;i<DeviceMessageLength;i++){Serial.print(timingsBins[i]);Serial.print(",");}Serial.print("\n");
-      for(int i=0;i<DeviceMessageLength/2;i++){Serial.print(BinsStream[i]);Serial.print(", ,");}Serial.print("\n");
+      for(int i=0;i<DeviceMessageLength;i++)  {logThis(String(timingsBins[i]),0);logThis(",",0);}logThis("");
+      for(int i=0;i<DeviceMessageLength/2;i++){logThis(String(BinsStream[i]),0); logThis(", ,",0);}logThis("");
     }
 }
 
@@ -57,7 +57,7 @@ int IdentityDeviceByMessageLength(){
      } 
     if (LongShortTH == 0) {
                              LongShortTH = 550; //default value  for unknown
-                             if (DEBUGLEVEL > 0) {Serial.print("**Device message length not recognized. using Treshhold default level**");}
+                             logThis(1,"**Device message length not recognized. using Treshhold default level**",2);
     }
     return LongShortTH;
 }

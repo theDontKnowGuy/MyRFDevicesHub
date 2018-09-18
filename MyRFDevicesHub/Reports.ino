@@ -1,9 +1,7 @@
 String reportDeviceStatus(RFDevice myDevice){
 
-  String timeStamp = getTimeStamp();
-
  if (DEBUGLEVEL > 0){
-      String    DeviceReport = timeStamp + " DeviceID: " + myDevice.ID;
+      String    DeviceReport =  " DeviceID: " + myDevice.ID;
                 DeviceReport = DeviceReport + " MsgLen: " + String(myDevice.messageLength);
                 if (DEBUGLEVEL > 4) DeviceReport = DeviceReport + " FreeHeapMem: " + system_get_free_heap_size();
                 DeviceReport = DeviceReport + " DeviceType: " + Devices[myDevice.idx].type;
@@ -17,9 +15,9 @@ String reportDeviceStatus(RFDevice myDevice){
 
          logThis(0,DeviceReport,2);
   }
-  
+
  String  postData = "<html>";
-         postData += "<timeStamp>" +      timeStamp + "</timeStamp>";
+         postData += "<timeStamp>" +      getTimeStamp() + "</timeStamp>";
          postData += "<deviceID>" +       myDevice.ID + "</deviceID>";
          postData += "<deviceLocation>" + Devices[myDevice.idx].location + "</deviceLocation>";
          postData += "<deviceType>" +     Devices[myDevice.idx].type + "</deviceType>";
@@ -34,7 +32,6 @@ String reportDeviceStatus(RFDevice myDevice){
             case 4:   //termostat
                    if ((myDevice.temperature < 999) && (myDevice.temperature >= 0)) postData += "<temperature>"+ String(myDevice.temperature) + "</temperature>";
             break;
-
 
          } /// end switch case 
          postData += "</html>";

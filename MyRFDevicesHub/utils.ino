@@ -2,57 +2,41 @@ void blinkLiveLed() {
 
   if (millis() - LiveSignalPreviousMillis > 500) {
     digitalWrite(blue, !(LivePulseLedStatus));
-    LivePulseLedStatus  = !(LivePulseLedStatus);
+    LivePulseLedStatus  = !(LivePulseLedStatus); 
+    totalLifes += 1; 
     LiveSignalPreviousMillis = millis();
   }
-  if (logBuffer == "") return;
 
-  if (networklogThis(logBuffer) == 0) logBuffer = ""; 
+  if(logBuffer.length() > 0) if(networklogThis(logBuffer) == 0) logBuffer = ""; 
+
+  if((totalLifes > 60*60*24*2) && (hour()==maintenanceRebootHour)){
+    logThis("Rebooting for maintenance...");
+    networklogThis(logBuffer);
+    ESP.restart();
+  }
 }
 
-void loadDevicesValues() {
+void loadRemoteConfiguration() {
 
   if (dataUpdateURI == "") return; /// no update. using hardcoded data.
-  if (!(dataUpdateHost.startsWith("192", 0)) || (dataUpdateHost.startsWith("10.", 0)))  {
+  if (!(strncmp(dataUpdateHost,"192",3)==0) || (strncmp(dataUpdateHost,"10.",3)==0))  {
     logThis("Placing update file on external server exposes your network to security risks. Ignoring and using local data."); //delete this line to override
     return;
   }
 
-  digitalWrite(yellow, HIGH);
-
-  WiFiClient client;
-  logThis(1,"connecting to reload data to " + dataUpdateHost,2);
-
-  if (!client.connect(dataUpdateHost, dataUpdatePort)) {
-    logThis("connecting to reload data failed. Continue with existing data.",3);
-    return;
-  }
-
-  client.print(String("GET ") + dataUpdateURI + "? HTTP/1.1\r\n" +
-               "Host: " + dataUpdateHost + "\r\n" +
-               "User-Agent: BuildFailureDetectorESP8266\r\n" +
-               "Connection: close\r\n\r\n");
-
-  while (client.connected()) {
-    String line = client.readStringUntil('\n');
-    if (line == "\r") {
-      if (DEBUGLEVEL > 2) Serial.println("headers received");
-      break;
-    }
-  }
-
+  NetworkResponse myNetworkResponse = httpRequest(dataUpdateHost, dataUpdatePort, "GET", dataUpdateURI, "", "}", 0);
+  
   const size_t capacity = JSON_OBJECT_SIZE(3) + JSON_ARRAY_SIZE(2) + 60;
   DynamicJsonDocument doc(capacity);
 
   // Parse JSON object
-  DeserializationError error = deserializeJson(doc, client);
+  DeserializationError error = deserializeJson(doc, myNetworkResponse.body);
+  
   if (error) {
-    Serial.println("Parsing failed. Continue with existing data.");
-    Serial.println(error.c_str());
+    logThis("Parsing failed. Continue with existing data.");
+    logThis(error.c_str());
     return;
   }
-
-  client.stop(); digitalWrite(yellow, LOW);
   
   JsonObject root = doc.as<JsonObject>();
 
@@ -72,10 +56,11 @@ void loadDevicesValues() {
     Devices[i].messasgeLength = root["RFDevices"][i]["messasgeLength"].as<int>();
     Devices[i].protocol = root["RFDevices"][i]["protocol"].as<int>();
   }
-  if (DEBUGLEVEL > 0) Serial.println("Network configuration loaded and parsed succesfully.");
+  logThis(1,"Network configuration loaded and parsed succesfully.",2);
 }
 
 String getTimeStamp() {
+  
   return year() + getDigits(month()) + getDigits(day()) + " " + getDigits(hour()) + getDigits(minute()) + getDigits(second());
 }
 
@@ -85,7 +70,7 @@ String getDigits(int digits) {
 
 void extractTime(String line) {
 
-  if (DEBUGLEVEL > 3) Serial.println(line);
+  logThis(3,line);
 
   String strMnt = line.substring(14, 17);
   int intMnt = 0;
@@ -113,18 +98,17 @@ void extractTime(String line) {
           intMnt,
           line.substring(18, 22).toInt());
 
-  if (DEBUGLEVEL > 2) Serial.println("\nTime set to (UTC): " + getTimeStamp() );
+  logThis(2,"\nTime set to (UTC): " + getTimeStamp() );
 
-  if (DEBUGLEVEL > 4) {
-    Serial.println(line.substring(23, 25) + ":" + line.substring(26, 28) + ":" + line.substring(29, 31) + ":" +
+    logThis(4,line.substring(23, 25) + ":" + line.substring(26, 28) + ":" + line.substring(29, 31) + ":" +
                    line.substring(11, 13) + ":" + intMnt + ":" + line.substring(18, 22));
-  }
 }
 
 void boardpanic() {
 
   Serial.println("Reseting for panic !!!!!!!!!!!!!!!!!!!!!!!!!!!");
-  ESP.reset();
+  ESP.restart();
+
 }
 
 void logThis(String strMessage) {
@@ -138,37 +122,51 @@ void logThis(String strMessage, int newLineHint) {
 }
 
 void logThis(int debuglevel, String strMessage) {
-  logThis(debuglevel, strMessage, 0);
+  logThis(debuglevel, strMessage, 2);
   return;
 }
 
 void logThis(int debuglevel, String strMessage, int newLineHint) {
-  // newLineHint: 0 - nothing 1 - before 2- after 3- before and after
+  // newLineHint: 0- nothing 1- before 2- after 3- before and after
 
   if (DEBUGLEVEL < debuglevel) return;
 
-  String msg = strMessage;
-  if ((newLineHint == 1) || (newLineHint == 3)) msg = "\n" + msg;
-  if ((newLineHint == 2) || (newLineHint == 3)) msg = msg + "\n";
+  if (year()>2000) strMessage = getTimeStamp() + " " + strMessage;
 
-  Serial.print(msg);
+  if ((newLineHint == 1) || (newLineHint == 3)) strMessage = "\n" + strMessage;
+  if ((newLineHint == 2) || (newLineHint == 3)) strMessage = strMessage + "\n";
 
-  logBuffer += msg;
+  Serial.print(strMessage);
+
+  logBuffer += strMessage;
 
   return;
 }
 
 int networklogThis(String message){
-
+return 0;
   if (logTarget == "") return 0;   //value empty - network logging off
 
   message.replace("\n","|");
+  message.replace(char(34),char(33));
   
-  int result = httpPostRequest(dataUpdateHost, dataUpdatePort , logTarget,  "msg=" + message , "OK");
-  
-  if (!(result == 0)) {
-      Serial.println("FAILED LOGGIN TO NETWORK");
+  NetworkResponse myNetworkResponse = httpRequest(dataUpdateHost, dataUpdatePort, "GET", logTarget, "msg=" + message, "OK", 0);
+
+  if (!(myNetworkResponse.resultCode == 0)) {
+      Serial.println("FAILED LOGGING TO NETWORK");
       digitalWrite(red, HIGH);
+      return 1;
   }  
+  return 0;
 }
 
+int convertBin2Dec (unsigned long num){
+    int dec=0, b=1, rem=1;
+    while (num > 0)
+    {  rem = num % 10;
+       dec = dec + rem * b;
+       b *= 2;
+       num /= 10;
+    }
+    return dec;
+}
