@@ -1,7 +1,11 @@
 # myRFDevicesHub
+
 Connect all my RF 433 Devices messages and convert them to actions like connect to Smartthings
 
- * Version 0.5 beta - Support logging over http. Adoptation to ArduinoJson lib 6.2.3. 
+Version 0.8 beta - Migrarion to ESP32. Fixing some shit aroud Wifi client response. Adopting to new ArduinoJson library 6.3.
+ * Version 0.7 beta - Maintenance Reboot once a day.Add Web log page.
+ * Version 0.6 beta - Reduce network time. Bug fixes.
+ * Version 0.5 beta - Support network logging. Adopting to new ArduinoJson library 6.2.3. 
  * Version 0.4 beta - Support set clock and add timestamp to reports and logs
  * Version 0.3 beta - Support dynamic load of new devices
  * Version 0.2 beta
