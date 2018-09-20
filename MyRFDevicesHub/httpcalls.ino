@@ -32,112 +32,6 @@ int initiateNetwork(){
 return result;
 }
 
-int httpGetRequest(char* host, String URI, String successValidator){
-   
-   digitalWrite(yellow,HIGH);
-   int result;
-   WiFiClientSecure client;
-
-   if (DEBUGLEVEL>2) {Serial.print("connecting to ");Serial.println(host);}  
-
-   if (!client.connect(host, httpsPort)) {
-          Serial.println("connection failed");
-          digitalWrite(red,HIGH);
-          return 1;
-     }
-   
-  if (DEBUGLEVEL>2) {Serial.print("requesting URI: "); Serial.println(URI);}
-
-    client.print(String("GET ") + URI + " HTTP/1.1\r\n" +
-               "Host: " + host + "\r\n" +
-               "User-Agent: BuildFailureDetectorESP8266\r\n" +
-               "Connection: close\r\n\r\n");
-  return 0;  
-
- String line;
-  while (client.connected()) {line += client.readStringUntil('~');}   
-  int idxBodyStart = line.indexOf("\r\n\r\n") + 4; 
-
-  if (DEBUGLEVEL>4) Serial.println(line);
-
-  if (line.indexOf("Date: ")>0) extractTime(line.substring(line.indexOf("Date: "),line.indexOf("Date: ")+37));
-  
-  client.stop();      
-  
-  line.replace(char(34), char(33));
-  if (!(line.indexOf(successValidator) == 1)) {
-        if(DEBUGLEVEL>2) Serial.println("Valid Reponse received.");
-        digitalWrite(yellow,LOW);
-        digitalWrite(red,LOW);  
-        return 0;}
-    else {Serial.println("Unanticipated Reponse received.");
-        if (DEBUGLEVEL>2) Serial.println(line);
-        digitalWrite(yellow,LOW);
-        digitalWrite(red,HIGH);        
-        return 2;}  
-}
-
-int httpPostRequest(char* host, int port, String URI, String postData, String successValidator){
-
-    WiFiClient client;
-    
-    int result = 0;
-    digitalWrite(yellow,HIGH);
-         
-    logThis(4,postData,2);
-
-    if (!(client.connect(host, port))) 
-      {logThis("Failed to connect");
-        return 1;}
-      else
-      {
-      client.println("POST " + URI + " HTTP/1.1");
-            client.print("Host: ");
-            client.println(host);
-            client.println("User-Agent: BuildFailureDetectorESP8266");
-            client.println("Cache-Control: no-cache");
-          //  client.println("Content-Type: application/json");
-            client.println("Content-Type: application/x-www-form-urlencoded;");    
-            client.print("Content-Length: ");
-            client.println(postData.length());
-            client.println();
-            client.println(postData);     
-                       
-    long interval = 8000;
-    unsigned long currentMillis = millis(), previousMillis = millis();
-  
-  /*  while(!client.available()){
-      if( (currentMillis - previousMillis) > interval ){
-        logThis("Timeout");
-        client.stop();
-        digitalWrite(red,HIGH);     
-        return 1;
-      }
-      currentMillis = millis();
-    }
-    */
-      }
-  String line;
-  while (client.connected()) {line += client.readStringUntil('~');}   
-  int idxBodyStart = line.indexOf("\r\n\r\n") + 4; 
-
-  client.stop();
-        
-    line.replace(char(34), char(33));
-    if (!(line.indexOf(successValidator) == -1)) {
-            if(DEBUGLEVEL>2) logThis("Valid Reponse received.");
-            digitalWrite(red,LOW);
-     } else {
-            logThis("Unanticipated Reponse received.");
-            logThis(line);
-            digitalWrite(red,HIGH);
-     }
-            
-  digitalWrite(yellow,LOW);   
-    
- return result; 
-}
-
 int httpTestRequest(){
 
   char* host = "www.google.com";
@@ -198,18 +92,18 @@ NetworkResponse httpRequest(char* host, int port, String requestType, String URI
                    "User-Agent: BuildFailureDetectorESP8266\r\n" +
                    "Cache-Control: no-cache \r\n" + 
                    "Content-Type: application/x-www-form-urlencoded;\r\n" ;
-                   
-  if (requestType == "POST"){httpComm += "Content-Length: " + postData.length() + String("\r\n\r\n") + postData;}   
 
-  if (requestType == "GET"){httpComm += "Connection: close\r\n\r\n";}
+  if (requestType == "POST"){httpComm = httpComm + "Content-Length: " + postData.length() + String("\r\n\r\n") + postData + String("\r\n\r\n");} 
 
-  if (SecureConnection) myNetworkResponse = secureHttpRequestExecuter(host , port, httpComm, myNetworkResponse);
-    else                myNetworkResponse =       httpRequestExecuter(host , port, httpComm, myNetworkResponse);
+  if (requestType == "GET"){httpComm = httpComm + "Connection: close\r\n\r\n";}
+
+  if (SecureConnection) myNetworkResponse = secureHttpRequestExecuter(host , port, httpComm);
+    else                myNetworkResponse =       httpRequestExecuter(host , port, httpComm);
  
   myNetworkResponse.headerLength = myNetworkResponse.header.length();
   myNetworkResponse.bodyLength = myNetworkResponse.body.length();
  
-  if (myNetworkResponse.headerLength < 100) {     logThis("Extremely short headers: " +myNetworkResponse.header ); 
+  if (myNetworkResponse.headerLength < 38) {     logThis("Extremely short headers: " + String(myNetworkResponse.headerLength) + "\n " + String(myNetworkResponse.header)); 
                                                   myNetworkResponse.resultCode=4; 
                                                   digitalWrite(yellow,LOW);
                                                   digitalWrite(red,HIGH);
@@ -218,8 +112,12 @@ NetworkResponse httpRequest(char* host, int port, String requestType, String URI
   logThis(5,"Headers: " + myNetworkResponse.header);
   logThis(4,"Body: " + myNetworkResponse.body);
  
-  if (myNetworkResponse.body.indexOf(successValidator) == -1) {
+  if ((myNetworkResponse.body.indexOf(successValidator) == -1) && 
+      (myNetworkResponse.header.indexOf(successValidator) == -1))                        
+                                              {
                                               logThis("Unanticipated Reponse received.");
+                                              logThis(2,myNetworkResponse.header);
+                                              logThis(2,myNetworkResponse.body);
                                               myNetworkResponse.resultCode=5; 
                                               digitalWrite(yellow,LOW);
                                               digitalWrite(red,HIGH);
@@ -231,7 +129,11 @@ NetworkResponse httpRequest(char* host, int port, String requestType, String URI
 return myNetworkResponse;
 }
 
-NetworkResponse httpRequestExecuter(char* host ,int port,String httpComm, NetworkResponse myNetworkResponse){
+NetworkResponse httpRequestExecuter(char* host ,int port,String httpComm){
+
+  NetworkResponse myNetworkResponse;
+    myNetworkResponse.header = "";
+    myNetworkResponse.body = "";
   
   int resultCode=0;
    digitalWrite(yellow,HIGH);
@@ -249,41 +151,59 @@ NetworkResponse httpRequestExecuter(char* host ,int port,String httpComm, Networ
      }
   
     client.print(httpComm);
-Serial.println(httpComm);//    logThis(5,httpComm);
+    logThis(5,httpComm);
 
-  long interval = 12000;
-  unsigned long currentMillis = millis(), previousMillis = millis();
-  String line;
-      while (client.connected()) {
-      line = client.readStringUntil('~');    //assumed symbol never exists
-      line += line;  // assumed symbol doesn't exist.
+   // String response="";
+    unsigned long timeout = millis();
+    bool isHeader = true;
+    while (client.available() == 0) {
+        if (millis() - timeout > 15000) {
+                        logThis("connection Timeout");
+                        client.stop();
+                        digitalWrite(red,HIGH);
+                        myNetworkResponse.resultCode=5; 
+                        return myNetworkResponse;
+                      }
+     }
+    
+    while(client.available() > 0) {
+        String line = client.readStringUntil('\n');
+        if (line == "\r") isHeader=false;
+        if (!(line == "")) {
+          if (isHeader) {myNetworkResponse.header = myNetworkResponse.header + line; }
+              else      {myNetworkResponse.body   = myNetworkResponse.body   + line; }
+             
+          }
     }
 
-      int idxHeader = line.indexOf("\r\n\r\n");
-      
-      myNetworkResponse.header = line.substring(0,idxHeader);
-      myNetworkResponse.body = line.substring(idxHeader+4);
+    myNetworkResponse.headerLength = myNetworkResponse.header.length();
+    myNetworkResponse.bodyLength   = myNetworkResponse.body.length();
 
-      myNetworkResponse.resultCode = 0;
- 
-  /*    if((currentMillis - previousMillis) > interval ){
-                                                          logThis("Connection Timeout");
-                                                          myNetworkExecResponse.resultCode=5; 
-                                                          client.stop();
-                                                          digitalWrite(red,HIGH); 
-                                                          digitalWrite(yellow,LOW);     
-                                                          return myNetworkExecResponse;}
-      currentMillis = millis();
-  }  */  
-    
-  client.stop(); 
-  digitalWrite(yellow,LOW);     
-  return myNetworkResponse;
-  }
+    if(DEBUGLEVEL>5){
+        Serial.println("\nrequest");
+        Serial.println(httpComm);
+        Serial.println("headers");
+        Serial.println(myNetworkResponse.headerLength);
+        Serial.println(myNetworkResponse.header);
+        Serial.println("body");
+        Serial.println(myNetworkResponse.body.length());
+        Serial.println(myNetworkResponse.body);
+        Serial.println("end");
+        
+    }
 
-NetworkResponse secureHttpRequestExecuter(char* host ,int port,String httpComm, NetworkResponse myNetworkResponse){
-     
-   int resultCode=0;
+ myNetworkResponse.resultCode = 0;  
+ client.stop(); 
+ digitalWrite(yellow,LOW);     
+return myNetworkResponse;
+}
+
+NetworkResponse secureHttpRequestExecuter(char* host ,int port,String httpComm){
+ NetworkResponse myNetworkResponse;
+    myNetworkResponse.header = "";
+    myNetworkResponse.body = "";
+  
+  int resultCode=0;
    digitalWrite(yellow,HIGH);
    WiFiClientSecure client; 
    //WiFiClient client; 
@@ -298,43 +218,49 @@ NetworkResponse secureHttpRequestExecuter(char* host ,int port,String httpComm, 
           return myNetworkResponse;
      }
   
-    client.println(httpComm);
-    logThis(5,httpComm);
+    client.print(httpComm);
 
-
-  long interval = 12000;
-  unsigned long currentMillis = millis(), previousMillis = millis();
-  String line;
-      while (client.connected()) {
-      line = client.readStringUntil('\n');
-      if (line == "\r") {
-        break;
-      }
-      myNetworkResponse.header += line;  // assumed symbol doesn't exist.
-    }
-          
-      while (client.available()) {
-          line = client.readStringUntil('\n'); 
-          if (line == "\r") {
-            break;
+   // String response="";
+    unsigned long timeout = millis();
+    bool isHeader = true;
+    while (client.available() == 0) {
+        if (millis() - timeout > 5000) {
+                        logThis("connection Timeout");
+                        client.stop();
+                        digitalWrite(red,HIGH);
+                        myNetworkResponse.resultCode=5; 
+                        return myNetworkResponse;
+                      }
+     }
+    
+    while(client.available()) {
+        String line = client.readStringUntil('\n');
+        if (line == "\r") isHeader=false;
+        if (!(line == "")) {
+          if (isHeader) {myNetworkResponse.header = myNetworkResponse.header + line; }
+              else      {myNetworkResponse.body   = myNetworkResponse.body   + line; }
+             
           }
-          myNetworkResponse.body += line;  
     }
 
-      
-  /*    if((currentMillis - previousMillis) > interval ){
-                                                          logThis("Connection Timeout");
-                                                          myNetworkExecResponse.resultCode=5; 
-                                                          client.stop();
-                                                          digitalWrite(red,HIGH); 
-                                                          digitalWrite(yellow,LOW);     
-                                                          return myNetworkExecResponse;}
-      currentMillis = millis();
-  }  */  
+    myNetworkResponse.headerLength = myNetworkResponse.header.length();
+    myNetworkResponse.bodyLength   = myNetworkResponse.body.length();
 
-      myNetworkResponse.resultCode = 0;
+    if(DEBUGLEVEL>5){
+        Serial.println("\nrequest");
+        Serial.println(httpComm);
+        Serial.println("headers");
+        Serial.println(myNetworkResponse.headerLength);
+        Serial.println(myNetworkResponse.header);
+        Serial.println("body");
+        Serial.println(myNetworkResponse.body.length());
+        Serial.println(myNetworkResponse.body);
+        Serial.println("end");
+        
+    }
 
-  client.stop(); 
-  digitalWrite(yellow,LOW);     
-  return myNetworkResponse;
-  }
+ myNetworkResponse.resultCode = 0;  
+ client.stop(); 
+ digitalWrite(yellow,LOW);     
+return myNetworkResponse;
+}

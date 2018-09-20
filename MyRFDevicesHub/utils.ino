@@ -144,13 +144,13 @@ void logThis(int debuglevel, String strMessage, int newLineHint) {
 }
 
 int networklogThis(String message){
-return 0;
+
   if (logTarget == "") return 0;   //value empty - network logging off
 
   message.replace("\n","|");
   message.replace(char(34),char(33));
-  
-  NetworkResponse myNetworkResponse = httpRequest(dataUpdateHost, dataUpdatePort, "GET", logTarget, "msg=" + message, "OK", 0);
+
+  NetworkResponse myNetworkResponse = httpRequest(dataUpdateHost, dataUpdatePort, "POST", logTarget, "msg=" + message, "Logged successfully", 0);
 
   if (!(myNetworkResponse.resultCode == 0)) {
       Serial.println("FAILED LOGGING TO NETWORK");

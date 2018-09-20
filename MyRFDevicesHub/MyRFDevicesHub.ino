@@ -13,8 +13,8 @@
  * credit to the writers of RFControl, ArduinoJson and ESP8266WiFi stacks.
  */
 
-int DEBUGLEVEL = 5;   // set between 0 and 5. This value will be overridden by dynamic network configuration json
-int maintenanceRebootHour = 4;  // the hub will reboot once a day at aproximitly this UTC hour (default 4 am) and provided it was running ~24 hours
+int DEBUGLEVEL = 1;   // set between 0 and 5. This value will be overridden by dynamic network configuration json
+int maintenanceRebootHour = 4;  // the hub will reboot once a day at aproximitly this UTC hour (default 4 am), provided it was running ~24 hours
 
 //////////////////////////Define Here New Device///////////////////////////////////////////////////////
 typedef struct { String Name; String location; String ID; String type; int messasgeLength; int protocol;} RFDevices;
@@ -54,7 +54,7 @@ typedef struct {int resultCode; String line;} NetworkExecResponse;
 typedef struct {String actionType; char* actionParam1; String actionParam2; String actionParam3; String successValidator;}  Actions;
 #define NoOfDevicesMessageLengths 3
 Actions myActions[] = {{"httpPostLocal", "192.168.1.210", "39500","status","HTTP/1.1 202 ACCEPTED"},
-                       {"httpGetSTCloud","graph-na02-useast1.api.smartthings.com", "/api/token/5ef187b3-6598-404secretda06ab/smartapps/installations/secret-25cb320de9b5/execute/",":1af1cf9csecretdb7ee703ca:","{!result!:!OK!"},
+                       {"httpGetSTCloud","graph-na02-useast1.api.smartthings.com", "/api/token/5ef187b.........7cda06ab/smartapps/installations/935f9443-.........-4987-8bb5-25cb320de9b5/execute/",":1af1cf9ca0......7ee703ca:","{!result!:!OK!"},
                        {"IFTTT",          "host3",           "ExternalDeviceName","temperature","successValidator"},
                        {"whateverelse",   "host4",           "ExternalDeviceName","status","successValidator"}};
 
@@ -113,6 +113,7 @@ void setup() {
 
 void loop() {
 
+  blinkLiveLed();
   if(RFControl::hasData()) {
 
                 int myInxDevice = -1;
@@ -127,5 +128,5 @@ void loop() {
                     ReportUnkownDevice(myDevice);
                 }
   RFControl::continueReceiving();
-  blinkLiveLed();
+
 }
