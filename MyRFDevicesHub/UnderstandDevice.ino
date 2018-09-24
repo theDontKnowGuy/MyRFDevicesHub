@@ -60,21 +60,12 @@ void AnalyzeDeviceStatus(RFDevice* myDevice){
               for(int i = 1 ; i <12 ; i++){s = s + ((myDevice->deviceStatus[i]=='1') ? '1':'0');}
               bin = s.toInt();
               myDevice->temperature = convertBin2Dec(bin)/10;
-              logThis(0,String((2,bin)),2); logThis(String(myDevice->temperature));                
+              logThis(2,String((2,bin)),1); logThis(2,String(myDevice->temperature));                
                                
         break;
         
     }   ///SWITCH CASE
 }
 
-int convertBin2Dec (unsigned long num){
-    int dec=0, b=1, rem=1;
-    while (num > 0)
-    {  rem = num % 10;
-       dec = dec + rem * b;
-       b *= 2;
-       num /= 10;
-    }
-    return dec;
-}
+
 
