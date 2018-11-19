@@ -49,7 +49,7 @@ void Length2bin(){
       for(int i=0;i<DeviceMessageLength/2;i++){logThis(String(BinsStream[i]),0); logThis(", ,",0);}logThis("");
     }
 }
-
+ 
 int IdentityDeviceByMessageLength(){
     int LongShortTH = 0;  
     for (int i=0 ; i < NoOfDevicesMessageLengths; i++){

@@ -1,12 +1,13 @@
 /*
  * MyRFDevicesHub  by theDontKnowGuy
- *
+ * 
  * Connect all my RF 433 Devices messages and convert them to actions like connect to Smartthings.
- *
+ * 
+ * Version 1.0 - Completed migration to new network stack which wraps any request generally
  * Version 0.8 beta - Migrarion to ESP32. Fixing some shit aroud Wifi client response. Adopting to new ArduinoJson library 6.3.
  * Version 0.7 beta - Maintenance Reboot once a day.Add Web log page.
  * Version 0.6 beta - Reduce network time. Bug fixes.
- * Version 0.5 beta - Support network logging. Adopting to new ArduinoJson library 6.2.3.
+ * Version 0.5 beta - Support network logging. Adopting to new ArduinoJson library 6.2.3. 
  * Version 0.4 beta - Support set clock and add timestamp to reports and logs
  * Version 0.3 beta - Support dynamic load of new devices
  * Version 0.2 beta
@@ -24,10 +25,10 @@ typedef struct { String Name; String location; String ID; String type; int messa
 int NoOfDevices=5;        // how many devices are defined in the list below (hardcoded).
 RFDevices Devices[MaxNoOfDevices] = {{"Salon Curtain Motion Detector", "SalonDoor",    "0xcfee1","PIR",        74,1},
                                      {"Switch on garden lights",       "GardenLights", "0x8cba3","RemoteBtn",  50,2},
-                                     {"Switch off garden lights",      "SomeWhere",    "0x7345c","RemoteBtn",  50,2},
+                                     {"Switch off garden lights",      "SomeWhere",    "0x7345c","RemoteBtn",  50,2},                               
                                      {"Another Motion Detector",       "Somewhere",    "0xc2107","PIR2",       50,3},
                                      {"Kitchen termometer",            "Kitchen",      "0x880",  "Termometer", 66,4}};
-
+                               
 //////////////////////////Define Here New Protocols Treshold and MessageLength///////////////////////////////////////////////////////
 typedef struct {int LongShortTH; int messageLength; int deviceNameLength;}  RFProtocols;
 #define NoOfSupportedProtocols 4
@@ -38,11 +39,11 @@ RFProtocols SupportedProtocols[] = {{550,   50,   20},
 
 //////////////////////////Define Here Local Network and Data Update Server if any (optional) ///////////////////////////////////////////////////////
 
-const char* ssid =    "...";
-const char* password ="...";
+const char* ssid =    "xxx";
+const char* password ="dddd";
 const int   httpsPort=443;
 
-char* dataUpdateHost = "192.168.1.200";
+char* dataUpdateHost = "192.168.1.200"; 
 int dataUpdatePort = 80;
 String dataUpdateURI = "/MyRFDevicesHub/MyRFDevicesHub.json";   /// see example json file in github. leave value empty is no local server (use hardcoded values above)
 String logTarget =     "/MyRFDevicesHub/MyRFDevicesHubLogger.php"; /// leave empty if no local logging server (will only Serial.print logs)
@@ -54,27 +55,27 @@ typedef struct {int resultCode; String line;} NetworkExecResponse;
 typedef struct {String actionType; char* actionParam1; String actionParam2; String actionParam3; String successValidator;}  Actions;
 #define NoOfDevicesMessageLengths 3
 Actions myActions[] = {{"httpPostLocal", "192.168.1.210", "39500","status","HTTP/1.1 202 ACCEPTED"},
-                       {"httpGetSTCloud","graph-na02-useast1.api.smartthings.com", "/api/token/5ef187b.........7cda06ab/smartapps/installations/935f9443-.........-4987-8bb5-25cb320de9b5/execute/",":1af1cf9ca0......7ee703ca:","{!result!:!OK!"},
+                       {"httpGetSTCloud","graph-na02-useast1.api.smartthings.com", "443", "/api/token/xxxxxxsecretxxxxx/smartapps/installations/<yourendpoint>/execute/:<webcore id>:","{\"result\":\"OK\""},
                        {"IFTTT",          "host3",           "ExternalDeviceName","temperature","successValidator"},
                        {"whateverelse",   "host4",           "ExternalDeviceName","status","successValidator"}};
-
+ 
 //////////////////////////Define Here associations between devices to the required action. index refers ///////////////////////////////////////////////////////
 #define NoOfDeviceActions 4
 typedef struct {String deviceType; int actionIdx;}  DevicesAction;
-DevicesAction myDevicesActions[] = {{"PIR",       0}, /// <----- this code refers to myActions above
+DevicesAction myDevicesActions[] = {{"PIR",       1}, /// <----- this code refers to myActions above
                                     {"RemoteBtn", 1},
-                                    {"Termometer",0},
+                                    {"Termometer",1},
                                     {"PIR2",      0}};
 
 //////////////////////////Define a device runtime status and available capabilties ///////////////////////////////////////////////////////
 typedef struct {int idx; String ID; String deviceStatus; int messageLength; int protocolIdx;
-                bool IsMove = false; bool IsTamper = false; bool IsLowBat = false; bool IsPing = false;
+                bool IsMove = false; bool IsTamper = false; bool IsLowBat = false; bool IsPing = false; 
                 bool IsUnkown = false; int temperature = 999;} RFDevice;
 
 int DeviceMessageLength = -1;
 
 //////////////////////////in high debug level get heapsize and more///////////////////////
-
+#include <WiFiClient.h>
 #include <WiFiClientSecure.h>
 #include <ArduinoJson.h>
 #include <RFControl.h>
@@ -82,8 +83,8 @@ int DeviceMessageLength = -1;
 
 #define RFmessageLength 80
 int timingsBins[RFmessageLength], BinsStream[RFmessageLength];
-int MaxValidLengthTH = 2000, LivePulseLedStatus = 0;
-unsigned long totalLifes, LiveSignalPreviousMillis = millis();
+int MaxValidLengthTH = 2000, LivePulseLedStatus = 0; 
+unsigned long totalLifes, LiveSignalPreviousMillis = millis(); 
 bool isDeviceExist, isSetup = true;
 String logBuffer = "";
 
@@ -94,25 +95,25 @@ String logBuffer = "";
 
 void setup() {
 
-    pinMode(red, OUTPUT);pinMode(yellow, OUTPUT);pinMode(blue, OUTPUT);
+    pinMode(red, OUTPUT);pinMode(yellow, OUTPUT);pinMode(blue, OUTPUT);               
     digitalWrite(red, HIGH);delay(200); digitalWrite(red, LOW);digitalWrite(yellow, HIGH);delay(200); digitalWrite(yellow, LOW);delay(200);digitalWrite(blue, HIGH);delay(200); digitalWrite(blue, LOW);
 
-    Serial.begin(115200); logThis("Starting MyRFDevicesHub...",3);
-
+    Serial.begin(115200); logThis("Starting MyRFDevicesHub...",3); 
+      
     if (initiateNetwork()>0) {networkReset();}
 
-    logThis(5, "Avail heap mem: " + String(system_get_free_heap_size()));
+ //   logThis(5, "Avail heap mem: " + String(system_get_free_heap_size()));
 
     loadRemoteConfiguration();
 
-    RFControl::startReceiving(25);    //wemos D1R2 GPIO14-->D5. default casued boot problems. //ESP32  25. Some lower ones caused problems.
-
-    logThis("Initialization Completed.");
+    RFControl::startReceiving(25);    //ץ wemos D1R2 GPIO14-->D5. default casued boot problems. //ESP32  25. Some lower ones caused problems.
+    
+    logThis("Initialization Completed."); 
     digitalWrite(blue, HIGH); // system live indicator
 }
-
+ 
 void loop() {
-
+  
   blinkLiveLed();
   if(RFControl::hasData()) {
 
@@ -120,7 +121,7 @@ void loop() {
                 RFDevice myDevice;
                 getDeviceDetails(&myDevice);
                 getDeviceStatus(&myDevice);
-
+           
                 if (isDeviceExist) {
                     AnalyzeDeviceStatus(&myDevice);
                     int r = eventAction(myDevice);}

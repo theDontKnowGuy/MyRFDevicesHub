@@ -1,18 +1,20 @@
 int initiateNetwork(){
   int result;
   digitalWrite(yellow,HIGH);
-  
+
   logThis(1,"connecting to " + String(ssid),1);
 
   long interval = 9000;
   unsigned long currentMillis = millis(), previousMillis = millis();
-  
-  WiFi.begin(ssid, password);
-  while ((WiFi.status() != WL_CONNECTED) && ((currentMillis - previousMillis) < interval)) {
-    delay(300); if(DEBUGLEVEL>1) Serial.print(".");
-    currentMillis = millis();
+  int countConnect = 0 ;
+  WiFi.disconnect();
+  delay(1000);
+  WiFi.begin(ssid, password);  delay(1000);
+  while ((WiFi.status() != WL_CONNECTED) && (countConnect < 20)) {
+    delay(300);  Serial.print(".");
+    countConnect ++;
     }
-  if (!(currentMillis - previousMillis < interval)){
+  if (countConnect == 20){
         Serial.println("Timeout waiting for network");
         digitalWrite(red,HIGH);
         return 1;
@@ -74,6 +76,7 @@ void networkReset(){
 }
 
 NetworkResponse httpRequest(char* host, int port, String requestType, String URI, String postData, String successValidator, bool quicky){
+
   
   NetworkResponse myNetworkResponse;
   
@@ -85,9 +88,11 @@ NetworkResponse httpRequest(char* host, int port, String requestType, String URI
   bool SecureConnection;
   if (port == 443)  SecureConnection = true; else SecureConnection=false;
 
-  String httpComm = requestType + " " + //(SecureConnection ? "https://":"http://") + 
-              //     String(host) + 
-              URI + " HTTP/1.1\r\n" +
+  String httpComm = requestType + " " + URI;
+
+                   if (requestType == "GET"){httpComm = httpComm + "?" + postData;}                 
+                   
+         httpComm = httpComm + " HTTP/1.1\r\n" +
                    "Host: " + String(host) + "\r\n" +
                    "User-Agent: BuildFailureDetectorESP8266\r\n" +
                    "Cache-Control: no-cache \r\n" + 
@@ -116,8 +121,8 @@ NetworkResponse httpRequest(char* host, int port, String requestType, String URI
       (myNetworkResponse.header.indexOf(successValidator) == -1))                        
                                               {
                                               logThis("Unanticipated Reponse received.");
-                                              logThis(2,myNetworkResponse.header);
-                                              logThis(2,myNetworkResponse.body);
+                                              logThis(1,myNetworkResponse.header);
+                                              logThis(1,myNetworkResponse.body);
                                               myNetworkResponse.resultCode=5; 
                                               digitalWrite(yellow,LOW);
                                               digitalWrite(red,HIGH);
@@ -202,7 +207,7 @@ NetworkResponse secureHttpRequestExecuter(char* host ,int port,String httpComm){
  NetworkResponse myNetworkResponse;
     myNetworkResponse.header = "";
     myNetworkResponse.body = "";
-  
+    
   int resultCode=0;
    digitalWrite(yellow,HIGH);
    WiFiClientSecure client; 
@@ -217,9 +222,9 @@ NetworkResponse secureHttpRequestExecuter(char* host ,int port,String httpComm){
           myNetworkResponse.resultCode=3; 
           return myNetworkResponse;
      }
-  
-    client.print(httpComm);
 
+    client.print(httpComm);
+  
    // String response="";
     unsigned long timeout = millis();
     bool isHeader = true;

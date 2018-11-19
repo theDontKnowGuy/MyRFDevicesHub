@@ -3,7 +3,7 @@ String reportDeviceStatus(RFDevice myDevice){
  if (DEBUGLEVEL > 0){
       String    DeviceReport =  " DeviceID: " + myDevice.ID;
                 DeviceReport = DeviceReport + " MsgLen: " + String(myDevice.messageLength);
-                if (DEBUGLEVEL > 4) DeviceReport = DeviceReport + " FreeHeapMem: " + system_get_free_heap_size();
+     //           if (DEBUGLEVEL > 4) DeviceReport = DeviceReport + " FreeHeapMem: " + system_get_free_heap_size();
                 DeviceReport = DeviceReport + " DeviceType: " + Devices[myDevice.idx].type;
                 DeviceReport = DeviceReport + " DeviceLocation: " + Devices[myDevice.idx].location;                
                 if(myDevice.IsMove) DeviceReport = DeviceReport +  "IsMove ";
@@ -16,25 +16,34 @@ String reportDeviceStatus(RFDevice myDevice){
          logThis(0,DeviceReport,2);
   }
 
- String  postData = "<html>";
-         postData += "<timeStamp>" +      getTimeStamp() + "</timeStamp>";
-         postData += "<deviceID>" +       myDevice.ID + "</deviceID>";
-         postData += "<deviceLocation>" + Devices[myDevice.idx].location + "</deviceLocation>";
-         postData += "<deviceType>" +     Devices[myDevice.idx].type + "</deviceType>";
-         postData += "<deviceStatus>" +   myDevice.deviceStatus + "</deviceStatus>";
-         
+String  postData = ""; 
+
+        postData += "deviceID=" +       myDevice.ID + "&";
+        postData += "deviceLocation=" + Devices[myDevice.idx].location + "&";
+        postData += "deviceType=" +     Devices[myDevice.idx].type + "&";
+        postData += "deviceStatus=" +   myDevice.deviceStatus;
+
+ 
+
+ // String  postData = "<html>";
+ //        postData += "<timeStamp>" +      getTimeStamp() + "</timeStamp>";
+  //       postData += "<deviceID>" +       myDevice.ID + "</deviceID>";
+  //       postData += "<deviceLocation>" + Devices[myDevice.idx].location + "</deviceLocation>";
+  //       postData += "<deviceType>" +     Devices[myDevice.idx].type + "</deviceType>";
+  //       postData += "<deviceStatus>" +   myDevice.deviceStatus + "</deviceStatus>";
+
          switch (Devices[myDevice.idx].protocol) {
             case 1:   //Visonic
-                   if (myDevice.IsMove==1)  postData += "<motion>"+ String(1) + "</motion>";
-                   if (myDevice.IsPing==1)  postData += "<motion>"+ String(0) + "</motion><tamper>"+ String(0) + "</tamper>";
-                   if (myDevice.IsTamper==1)postData += "<tamper>"+ String(1) + "</tamper>";
+                   if (myDevice.IsMove==1)  postData += "&motion=1";
+                   if (myDevice.IsPing==1)  postData += "&ping=1&tamper=0";
+                   if (myDevice.IsTamper==1)postData += "&tamper=1";
             break;
             case 4:   //termostat
-                   if ((myDevice.temperature < 999) && (myDevice.temperature >= 0)) postData += "<temperature>"+ String(myDevice.temperature) + "</temperature>";
+                   if ((myDevice.temperature < 999) && (myDevice.temperature >= 0)) postData += "&temperature="+ String(myDevice.temperature);
             break;
 
          } /// end switch case 
-         postData += "</html>";
+  
          
          logThis(3,postData,2);
   return postData;       
@@ -54,5 +63,3 @@ void ReportUnkownDevice(RFDevice myDevice){
 
                 logThis(DeviceReport);
 }
-
-

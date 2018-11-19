@@ -20,15 +20,14 @@ int eventAction(RFDevice myDevice){
                result = myNetworkResponse.resultCode;
             //    result = httpPostRequest(host, port, "posts", postData, successValidator);
       break; 
-           
-      case 1:       ///// remote button to call webcore piston
+            
+      case 1:       ///// for example: get request to call webcore piston
+
                 host = myActions[actionIdx].actionParam1;
-                postData = myActions[actionIdx].actionParam2 + myActions[actionIdx].actionParam3;
+                port = myActions[actionIdx].actionParam2.toInt();
                 successValidator = myActions[actionIdx].successValidator;
-
-              //  NetworkResponse myNetworkResponse = httpRequest(dataUpdateHost, dataUpdatePort, "GET", logTarget, "msg=" + message, "OK", 0);
-
-                result = httpGetRequest(host, postData, successValidator); 
+                myNetworkResponse = httpRequest(host, port, "GET",  myActions[actionIdx].actionParam3, postData, successValidator, 0);
+                result = myNetworkResponse.resultCode;
       break;
       
     } /// switch case

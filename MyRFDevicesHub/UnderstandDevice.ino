@@ -1,7 +1,7 @@
 void getDeviceDetails(RFDevice* myDevice){
    int result = 0;
    Length2bin();            // convert data stream to workable information. clean up streams...
-
+ 
    myDevice->messageLength = DeviceMessageLength;
     
     // which protocol is the device ?
@@ -66,6 +66,3 @@ void AnalyzeDeviceStatus(RFDevice* myDevice){
         
     }   ///SWITCH CASE
 }
-
-
-
