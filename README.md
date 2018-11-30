@@ -25,7 +25,7 @@ The hub designed to be aware of error and problems (network) and try to recover 
 
 I am using WEMOS D1R2 but any ESP8266 should work and any Arduino with network access should be OK with some minor code change on the network stack.
 
-![alt text](https://photos.app.goo.gl/adFYFSsJZks4f7eF9)
+![alt text](https://lh3.googleusercontent.com/WBL5oTXWKvsu7guZXq39TpxMiPwH3iJrGACO5EKY5pxy82EF0439uUVmV7iJWcNCj8XLV19bo9rygoG5QiyY6vogaEoI-Da72RzOngfa13abKqSZ0ILgBBKookVFuQRV5vi1y7yw59cqeJpJIZE8_X01qgAcqRovSzmX_jpH92M18LPHQGCkAzNIzh2lJrTsWDvqjHfI_0tDgSMlFNIGIrEi5P10soM_d-6zy7vsqeZZY6fSsiJyus851VFcL-DA7WyN5Efs7BlwpwjM2UpfHKtjqwzZmLmBiVeiwrLzMo1JgHtrQVuo5iHf4QsYR60fYiHy8AuOArQ3N2C8iY6_Zye-nXUACQ_1H2T_SGC4km4iLe7E0Hxx8FobfOHhyEiMmbQy6fheiUVchI1nzVMB2zU-0iotsnaYye6AYDAGnyzyETkTDadAOQnniyyd5Clhtmh6M50S1KMKhhuGE5eBRsmVymOBps95WCgPJnlDKBFbAn6-qa7Qrw0tnwo_aETvJ-E3NXdSfDfBhjzDFWVb6lwve2xCDY98uON3vI9GTuprqWJWrBUD2NcrWKIeNtjdVrR1Z1u0gUr066qJlcbiNYHovwnBzgzN3ep265qHUZjTvrYTsf9qjMHvxk9uX4xl_nugeJaxmyo9gsOmSf_3r0xh=w2212-h1468-no)
 
 
 I am not a programmer. I can write few lines in C but that is about it.  So please forgive any programming flaws and feel free to let me know or to fix them yourself so we will update this project together.
