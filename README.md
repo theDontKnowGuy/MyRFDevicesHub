@@ -2,7 +2,7 @@
 
 Connect all my RF 433 Devices messages and convert them to actions like connect to Smartthings
 
-Version 0.8 beta - Migrarion to ESP32. Fixing some shit aroud Wifi client response. Adopting to new ArduinoJson library 6.3.
+ * Version 0.8 beta - Migrarion to ESP32. Fixing some shit aroud Wifi client response. Adopting to new ArduinoJson library 6.3.
  * Version 0.7 beta - Maintenance Reboot once a day.Add Web log page.
  * Version 0.6 beta - Reduce network time. Bug fixes.
  * Version 0.5 beta - Support network logging. Adopting to new ArduinoJson library 6.2.3. 
@@ -24,6 +24,9 @@ I implemented integration to Smartthings via two ways: One using external, webco
 The hub designed to be aware of error and problems (network) and try to recover from them. A lot to do to bring it to completion.
 
 I am using WEMOS D1R2 but any ESP8266 should work and any Arduino with network access should be OK with some minor code change on the network stack.
+
+![alt text](https://photos.app.goo.gl/adFYFSsJZks4f7eF9)
+
 
 I am not a programmer. I can write few lines in C but that is about it.  So please forgive any programming flaws and feel free to let me know or to fix them yourself so we will update this project together.
 
