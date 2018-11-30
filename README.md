@@ -18,7 +18,7 @@ So I have so many semy old to dead old 433Mhz RF  devices: from aliexpress 5$ se
 I wanted to reutilize the Visonic sensors to my Smartthings hub as Visonic's hub is a stupid box, but their sensors are bloody good.
 Reversed engineered the protocol, implemented it in Arduino and was about to close the shop but then decided to add the remote control, then something else than the meat thermometer as I decided that one cannot live his life peacefully without KODI to play a special announcement once the meat gets to the medium-rare point.
 Then things started to get out of control. I really wanted to make it generic so little work required, without coding, to add the next stupid device I will find / will must buy on Aliexpress. 
-
+![alt text](https://hackster.imgix.net/uploads/attachments/519445/blob_2ifrbftkzk_6PK1LPypE1.blob%3Fauto%3Dcompress%252Cformat%26w%3D900%26h%3D675%26fit%3Dmin?auto=compress%2Cformat&w=900&h=675&fit=min)
 I implemented integration to Smartthings via two ways: One using external, webcore trigger execution URL (via HTTP GET request) and another with posting directly to Smartthings hub on the local network. These are just examples of course which can be expanded.
 
 The hub designed to be aware of error and problems (network) and try to recover from them. A lot to do to bring it to completion.
